@@ -5,7 +5,23 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import GUI from 'lil-gui';
 
 //to debug in the browser
-const gui = new GUI();
+const gui = new GUI(
+    //can add a width to the gui
+    //width: 300,
+    //title: 'Debug gui',
+    //close/open folders by default
+    //coleFolders: false,
+);
+
+//can close entire gui
+//gui.close();
+//hide and can set to open on key press
+// gui.hide();
+
+window.addEventListener('keydown', (event) => {
+    if(event.key == 'h') 
+        gui.show(gui._hidden);
+})
 //params: object, property of object
 
 const debugObject = {};
@@ -94,28 +110,47 @@ debugObject.color = "#3a6ea6";
 //     new THREE.MeshBasicMaterial({ color: debugObject.color, wireframe: false })
 // );
 
-const geometry = new THREE.BoxGeometry(1, 1, 1, 5, 5, 5);
-const material = new THREE.MeshBasicMaterial({ color: debugObject.color, wireframe: false });
+const geometry = new THREE.BoxGeometry(1, 1, 1, 2, 2, 2);
+const material = new THREE.MeshBasicMaterial({ color: debugObject.color, wireframe: true });
 const mesh = new THREE.Mesh(geometry, material);
+const cubeTweaks = gui.addFolder('Cube');
+cubeTweaks.close();
 
 // const mesh = new THREE.Mesh(geometry, material)
 scene.add(mesh);
 
 //one or the other depending on clarity preference
 // gui.add(mesh.position, 'y', -3, 3, 0.01);
-gui.add(mesh.position, 'y')
+cubeTweaks.add(mesh.position, 'y')
 .min(-3)
 .max(3)
 .step(0.01)
 .name('elevation');
 
-gui.add(mesh, 'visible');
-gui.add(mesh.material, 'wireframe');
-gui.addColor(debugObject, 'color').onChange(() => {
+cubeTweaks.add(mesh, 'visible');
+cubeTweaks.add(mesh.material, 'wireframe');
+cubeTweaks.addColor(debugObject, 'color').onChange(() => {
     // console.log(material.color);
     material.color.set(debugObject.color);
 });
 
+debugObject.spin = () => {
+    //so it rotates full circle x2
+    gsap.to(mesh.rotation, { y: mesh.rotation.y + Math.PI * 2 })
+}
+cubeTweaks.add(debugObject, 'spin');
+debugObject.subdivision = 2;
+cubeTweaks.add(debugObject, 'subdivision')
+    .min(1)
+    .max(20)
+    .step(1)
+    .onFinishChange(() => {
+        mesh.geometry.dispose();
+        mesh.geometry = new THREE.BoxGeometry(
+            1, 1, 1, 
+            debugObject.subdivision, debugObject.subdivision, debugObject.subdivision
+        );
+    });
 // Sizes
 const sizes = {
     //To change width or height you can add a number or window.innerWidth or window.innerHeight
